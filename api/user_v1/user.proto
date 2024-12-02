@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 option go_package = "github.com/tokenoff03/user-service/pkg/user_v1; user_v1";
 
-service UserV1{
+service UserV1 {
     rpc Create (CreateRequest) returns (CreateResponse);
     rpc Get (GetRequest) returns (GetResponse);
     rpc List (ListRequest) returns (ListResponse);
