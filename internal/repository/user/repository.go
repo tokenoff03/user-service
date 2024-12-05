@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
+	"user-service/internal/client/db"
 	"user-service/internal/model"
 	"user-service/internal/repository"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -26,10 +26,10 @@ var (
 )
 
 type repo struct {
-	db *pgxpool.Pool
+	db db.Client
 }
 
-func NewRepository(db *pgxpool.Pool) repository.UserRepository {
+func NewRepository(db db.Client) repository.UserRepository {
 	return &repo{
 		db: db,
 	}
@@ -47,8 +47,12 @@ func (r *repo) Create(ctx context.Context, info *model.UserInfo) (int64, error) 
 		return 0, err
 	}
 
+	q := db.Query{
+		Name:     "user_repository.Create",
+		QueryRow: query,
+	}
 	var id int64
-	err = r.db.QueryRow(ctx, query, args...).Scan(&id)
+	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -67,9 +71,13 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 		return nil, err
 	}
 
+	q := db.Query{
+		Name:     "user_repository.Get",
+		QueryRow: query,
+	}
 	var user model.User
 	var info model.UserInfo
-	err = r.db.QueryRow(ctx, query, args...).Scan(&user.ID, &info.FirstName, &info.LastName, &info.Password, &info.PhoneNumber, &info.Email, &user.CreatedAt, &user.UpdatedAt)
+	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
 
 	if err != nil {
 		return nil, err
