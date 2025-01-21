@@ -13,5 +13,5 @@ type Implementation struct {
 func NewImplementation(userService service.UserService) *Implementation {
 	return &Implementation{
 		userService: userService,
-	}
+	} 
 }
