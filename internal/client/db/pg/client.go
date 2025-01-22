@@ -18,7 +18,7 @@ func New(ctx context.Context, dsn string) (db.Client, error) {
 	}
 
 	return &pgClient{
-		masterDBC: &pg{dbc: dbc},
+		masterDBC: &pg{dbc: dbc}, //Можно использовать конструктор в файле pg.go
 	}, nil
 }
 
