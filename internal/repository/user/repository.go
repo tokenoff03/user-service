@@ -76,12 +76,10 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 		QueryRow: query,
 	}
 	var user model.User
-	var info model.UserInfo
 	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
 
 	if err != nil {
 		return nil, err
 	}
-	user.Info = &info
 	return &user, nil
 }

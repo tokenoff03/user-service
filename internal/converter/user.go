@@ -22,6 +22,7 @@ func ToProtoUser(user *model.User) *user_v1.User {
 }
 
 func ToProtoUserInfo(info *model.UserInfo) *user_v1.UserInfo {
+
 	return &user_v1.UserInfo{
 		FirstName:   info.FirstName,
 		LastName:    info.LastName,

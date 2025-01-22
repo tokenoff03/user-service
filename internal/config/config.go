@@ -14,6 +14,10 @@ type HTTPConfig interface {
 	Address() string
 }
 
+type SwaggerConfig interface {
+	Address() string
+}
+
 func Load(path string) error {
 	err := godotenv.Load(path)
 	if err != nil {

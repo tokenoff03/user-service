@@ -11,7 +11,7 @@ func (i *Implementation) Get(ctx context.Context, req *user_v1.GetRequest) (*use
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return &user_v1.GetResponse{
 		User: converter.ToProtoUser(user),
 	}, nil
