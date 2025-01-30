@@ -3,12 +3,18 @@ package user
 import (
 	"context"
 	"user-service/internal/model"
+	"user-service/internal/utils"
 )
 
 func (s *serv) Create(ctx context.Context, info *model.UserInfo) (int64, error) {
 	var id int64
+	hashedPassword, err := utils.HashPassword(info.Password)
+	if err != nil {
+		return 0, err
+	}
+	info.Password = hashedPassword
 
-	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+	err = s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error
 		id, errTx = s.userRepository.Create(ctx, info)
 		if errTx != nil {

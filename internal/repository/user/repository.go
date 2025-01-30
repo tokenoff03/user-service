@@ -17,6 +17,7 @@ const (
 	passwordColumn    = "password"
 	phoneNumberColumn = "phone_number"
 	emailColumn       = "email"
+	roleColumn        = "role"
 	createdAtColumn   = "created_at"
 	updatedAtColumn   = "updated_at"
 )
@@ -38,8 +39,8 @@ func NewRepository(db db.Client) repository.UserRepository {
 func (r *repo) Create(ctx context.Context, info *model.UserInfo) (int64, error) {
 
 	builder := psq.Insert(tableName).
-		Columns(firstNameColumn, lastNameColumn, passwordColumn, phoneNumberColumn, emailColumn).
-		Values(info.FirstName, info.LastName, info.Password, info.PhoneNumber, info.Email).
+		Columns(firstNameColumn, lastNameColumn, passwordColumn, phoneNumberColumn, emailColumn, roleColumn).
+		Values(info.FirstName, info.LastName, info.Password, info.PhoneNumber, info.Email, info.Role).
 		Suffix("RETURNING id")
 
 	query, args, err := builder.ToSql()

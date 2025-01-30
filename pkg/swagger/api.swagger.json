@@ -326,6 +326,9 @@
         },
         "email": {
           "type": "string"
+        },
+        "role": {
+          "type": "string"
         }
       }
     }

@@ -29,6 +29,7 @@ func ToProtoUserInfo(info *model.UserInfo) *user_v1.UserInfo {
 		Password:    info.Password,
 		PhoneNumber: info.PhoneNumber,
 		Email:       info.Email,
+		Role:        info.Role,
 	}
 }
 
@@ -39,5 +40,6 @@ func ToUserInfoFromProto(info *user_v1.UserInfo) *model.UserInfo {
 		Password:    info.Password,
 		PhoneNumber: info.PhoneNumber,
 		Email:       info.Email,
+		Role:        info.Role,
 	}
 }

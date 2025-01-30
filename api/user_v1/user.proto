@@ -71,6 +71,7 @@ message UserInfo {
     string password = 3;
     string phone_number = 4;
     string email = 5;
+    string role = 6;
 }
 
 message User {

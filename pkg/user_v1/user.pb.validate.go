@@ -76,6 +76,8 @@ func (m *UserInfo) validate(all bool) error {
 
 	// no validation rules for Email
 
+	// no validation rules for Role
+
 	if len(errors) > 0 {
 		return UserInfoMultiError(errors)
 	}
