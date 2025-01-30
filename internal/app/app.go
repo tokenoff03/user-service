@@ -204,6 +204,7 @@ func serveSwaggerFile(path string) http.HandlerFunc {
 		log.Printf("Served swagger file: %v", path)
 	}
 }
+
 func (a *App) runGRPCServer() error {
 	log.Printf("GRPC server is running on %s", a.serviceProvider.GRPCConfig().Address())
 

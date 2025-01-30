@@ -50,7 +50,7 @@ local-migration-down:
 	${LOCAL_BIN}/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
 
 run:
-	docker-compose -p postgres up -d
+	docker-compose -p postgres_and_redis up -d
 
 vendor-proto:
 		@if [ ! -d vendor.protogen/validate ]; then \
