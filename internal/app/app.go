@@ -19,6 +19,7 @@ import (
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/natefinch/lumberjack"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"go.uber.org/zap"
@@ -55,7 +56,7 @@ func (a *App) Run() error {
 	}()
 
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -81,6 +82,14 @@ func (a *App) Run() error {
 		err := a.runSwaggerServer()
 		if err != nil {
 			log.Fatalf("failed to run Swagger server: %v", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := a.runPrometheus()
+		if err != nil {
+			log.Fatalf("failed to run prometheus: %v", err)
 		}
 	}()
 
@@ -169,7 +178,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.UnaryInterceptor(
-			grpcMiddleware.ChainUnaryServer(interceptor.LogInterceptor, interceptor.ValidateInterceptor),
+			grpcMiddleware.ChainUnaryServer(interceptor.LogInterceptor, interceptor.ValidateInterceptor, interceptor.MetricsInterceptor),
 		),
 	)
 
@@ -287,6 +296,25 @@ func (a *App) runSwaggerServer() error {
 	log.Printf("Swagger server is running on %s", a.serviceProvider.SwaggerConfig().Address())
 
 	err := a.swaggerServer.ListenAndServe()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) runPrometheus() error {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	prometheusServer := &http.Server{
+		Addr:    "localhost:2112",
+		Handler: mux,
+	}
+
+	log.Printf("Prometheus server is running on localhost:2112")
+
+	err := prometheusServer.ListenAndServe()
 	if err != nil {
 		return err
 	}
