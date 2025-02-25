@@ -12,6 +12,7 @@ import (
 	"user-service/internal/config"
 	"user-service/internal/interceptor"
 	"user-service/internal/logger"
+	"user-service/internal/metric"
 	"user-service/pkg/user_v1"
 
 	_ "user-service/statik"
@@ -106,6 +107,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initSwaggerServer,
+		metric.Init,
 	}
 
 	for _, f := range inits {
@@ -162,7 +164,7 @@ func (a *App) getCore(level zap.AtomicLevel) zapcore.Core {
 func (a *App) getAtomicLevel() zap.AtomicLevel {
 	var level zapcore.Level
 	if err := level.Set(a.logLevel); err != nil {
-		log.Fatalf("failed to set log level: %w", err)
+		log.Fatalf("failed to set log level: %v", err)
 	}
 
 	return zap.NewAtomicLevelAt(level)

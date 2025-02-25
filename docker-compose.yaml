@@ -7,6 +7,7 @@ volumes:
 
 services:
   prometheus: 
+    container_name: prometheus
     image: prom/prometheus:v2.37.9
     ports:
       - "9090:9090"
@@ -16,6 +17,7 @@ services:
       - prometheus_data:/prometheus
 
   pg:
+    container_name: postgres
     image: postgres:14-alpine3.17
     environment:
       - "POSTGRES_DB=${PG_DATABASE_NAME}"
@@ -28,7 +30,7 @@ services:
   
   redis:
     image: redis:7.2.5-alpine3.20
-    container_name: redis-container
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
