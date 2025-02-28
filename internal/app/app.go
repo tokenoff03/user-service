@@ -13,6 +13,7 @@ import (
 	"user-service/internal/interceptor"
 	"user-service/internal/logger"
 	"user-service/internal/metric"
+	"user-service/internal/tracing"
 	"user-service/pkg/user_v1"
 
 	_ "user-service/statik"
@@ -28,6 +29,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+)
+
+var (
+	serviceName = "user_service"
 )
 
 type App struct {
@@ -108,6 +113,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initHTTPServer,
 		a.initSwaggerServer,
 		metric.Init,
+		a.initTracing,
 	}
 
 	for _, f := range inits {
@@ -135,6 +141,11 @@ func (a *App) initLogger(_ context.Context) error {
 	return nil
 }
 
+func (a *App) initTracing(_ context.Context) error {
+	tracing.Init(logger.Logger(), serviceName)
+
+	return nil
+}
 func (a *App) getCore(level zap.AtomicLevel) zapcore.Core {
 	stdout := zapcore.AddSync(os.Stdout)
 
@@ -180,7 +191,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.UnaryInterceptor(
-			grpcMiddleware.ChainUnaryServer(interceptor.LogInterceptor, interceptor.ValidateInterceptor, interceptor.MetricsInterceptor),
+			grpcMiddleware.ChainUnaryServer(interceptor.LogInterceptor, interceptor.ValidateInterceptor, interceptor.MetricsInterceptor, interceptor.ServerTracingInterceptor),
 		),
 	)
 
