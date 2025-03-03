@@ -32,7 +32,8 @@ import (
 )
 
 var (
-	serviceName = "user_service"
+	serviceName     = "user_service"
+	authServicePort = 50059
 )
 
 type App struct {
@@ -146,6 +147,7 @@ func (a *App) initTracing(_ context.Context) error {
 
 	return nil
 }
+
 func (a *App) getCore(level zap.AtomicLevel) zapcore.Core {
 	stdout := zapcore.AddSync(os.Stdout)
 

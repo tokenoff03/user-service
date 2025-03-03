@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"user-service/internal/api/user"
 	"user-service/internal/client/db"
@@ -14,6 +15,13 @@ import (
 	userRepo "user-service/internal/repository/user"
 	"user-service/internal/service"
 	userService "user-service/internal/service/user"
+	"user-service/internal/utils"
+
+	"github.com/opentracing/opentracing-go"
+	"github.com/tokenoff03/authentication-service/pkg/auth_v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type serviceProvider struct {
@@ -22,12 +30,12 @@ type serviceProvider struct {
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.SwaggerConfig
 
-	dbClient       db.Client
-	txManager      db.TxManager
-	userRepository repository.UserRepository
-	userService    service.UserService
-
-	userImpl *user.Implementation
+	dbClient          db.Client
+	txManager         db.TxManager
+	userRepository    repository.UserRepository
+	userService       service.UserService
+	authServiceClient auth_v1.AuthV1Client
+	userImpl          *user.Implementation
 }
 
 func newServiceProvider() *serviceProvider {
@@ -121,10 +129,36 @@ func (s *serviceProvider) UserService(ctx context.Context) service.UserService {
 
 	return s.userService
 }
+func (s *serviceProvider) AuthServiceCleint(ctx context.Context) auth_v1.AuthV1Client {
+	if s.authServiceClient == nil {
+		//Connection to AutService
+		conn, err := grpc.NewClient(
+			fmt.Sprintf(":%d", authServicePort),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+				span, ctx := opentracing.StartSpanFromContext(ctx, method)
+				defer span.Finish()
 
+				md, _ := metadata.FromOutgoingContext(ctx)
+				mdWriter := utils.MetadataReaderWriter{md}
+				opentracing.GlobalTracer().Inject(span.Context(), opentracing.TextMap, mdWriter)
+
+				ctx = metadata.NewOutgoingContext(ctx, mdWriter.MD)
+
+				return invoker(ctx, method, req, reply, cc, opts...)
+			}),
+		)
+		if err != nil {
+			log.Fatalf("failed to dial GRPC client: %v", err)
+		}
+		s.authServiceClient = auth_v1.NewAuthV1Client(conn)
+	}
+
+	return s.authServiceClient
+}
 func (s *serviceProvider) UserImlp(ctx context.Context) *user.Implementation {
 	if s.userImpl == nil {
-		s.userImpl = user.NewImplementation(s.UserService(ctx))
+		s.userImpl = user.NewImplementation(s.UserService(ctx), s.AuthServiceCleint(ctx))
 	}
 
 	return s.userImpl

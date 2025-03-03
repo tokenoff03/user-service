@@ -20,3 +20,8 @@ type UserInfo struct {
 	Email       string `db:"email"`
 	Role        string `db:"role"`
 }
+
+type Login struct {
+	Email    string
+	Password string
+}

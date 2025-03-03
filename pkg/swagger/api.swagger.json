@@ -187,6 +187,38 @@
           "UserV1"
         ]
       }
+    },
+    "/user/v1/login": {
+      "post": {
+        "operationId": "UserV1_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/user_v1LoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user_v1LoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserV1"
+        ]
+      }
     }
   },
   "definitions": {
@@ -252,6 +284,25 @@
             "type": "object",
             "$ref": "#/definitions/user_v1User"
           }
+        }
+      }
+    },
+    "user_v1LoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "user_v1LoginResponse": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
         }
       }
     },

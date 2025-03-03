@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 	"user-service/internal/api/user"
 	"user-service/internal/model"
@@ -12,7 +13,12 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/gojuno/minimock/v3"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 	"github.com/stretchr/testify/require"
+	"github.com/tokenoff03/authentication-service/pkg/auth_v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func TestCreate(t *testing.T) {
@@ -97,8 +103,16 @@ func TestCreate(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			conn, err := grpc.NewClient(
+				fmt.Sprintf(":%d", "50059"),
+				grpc.WithTransportCredentials(insecure.NewCredentials()),
+				grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer())),
+			)
+			if err != nil {
+				log.Fatalf("failed to dial GRPC client: %v", err)
+			}
 			userServiceMockFunc := tt.userServiceMock(mc)
-			api := user.NewImplementation(userServiceMockFunc)
+			api := user.NewImplementation(userServiceMockFunc, auth_v1.NewAuthV1Client(conn))
 			res, err := api.Create(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)
