@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 	"user-service/internal/closer"
 	"user-service/internal/config"
 	"user-service/internal/interceptor"
 	"user-service/internal/logger"
 	"user-service/internal/metric"
+	"user-service/internal/rate_limiter"
 	"user-service/internal/tracing"
 	"user-service/pkg/user_v1"
 
@@ -190,10 +192,18 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+
+	rateLimiter := rate_limiter.NewTokenBucketLimiter(ctx, 10, time.Second)
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.UnaryInterceptor(
-			grpcMiddleware.ChainUnaryServer(interceptor.LogInterceptor, interceptor.ValidateInterceptor, interceptor.MetricsInterceptor, interceptor.ServerTracingInterceptor),
+			grpcMiddleware.ChainUnaryServer(
+				interceptor.LogInterceptor,
+				interceptor.ValidateInterceptor,
+				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
+				interceptor.MetricsInterceptor,
+				interceptor.ServerTracingInterceptor,
+			),
 		),
 	)
 

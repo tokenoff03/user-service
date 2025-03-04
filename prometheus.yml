@@ -1,6 +1,6 @@
 global:
-  scrape_interval: 2s
-  evaluation_interval: 2s
+  scrape_interval: 2s #Как часто собирать метрики
+  evaluation_interval: 2s #Как часто вычислять правила агрегации и алертинга
 
 rule_files:
   - "alerts.yml"
