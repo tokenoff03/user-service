@@ -86,10 +86,10 @@ grpc-load-test:
 grpc-error-load-test:
 	${LOCAL_BIN}/ghz \
 		--proto api/user_v1/user.proto \
-		-i vendor.protogen
+		-i vendor.protogen \
 		--call user_v1.UserV1/Get \
 		--data '{"id": 0}' \
 		--rps 100 \
-		--total 3000 \ 
+		--total 3000 \
 		--insecure \
 		localhost:50051
